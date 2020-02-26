@@ -1,0 +1,2477 @@
+syntax = "proto3";
+
+package consumerdatastandards;
+
+import "google/api/annotations.proto";
+
+enum BankingProductCategory {
+    TRANS_AND_SAVINGS_ACCOUNTS = 0;
+    TERM_DEPOSITS = 1;
+    TRAVEL_CARDS = 2;
+    REGULATED_TRUST_ACCOUNTS = 3;
+    RESIDENTIAL_MORTGAGES = 4;
+    CRED_AND_CHRG_CARDS = 5;
+    PERS_LOANS = 6;
+    MARGIN_LOANS = 7;
+    LEASES = 8;
+    TRADE_FINANCE = 9;
+    OVERDRAFTS = 10;
+    BUSINESS_LOANS = 11;
+}
+
+enum ParamAccountOpenStatus {
+    OPEN = 0;
+    CLOSED = 1;
+    ALL = 2;
+}
+
+message BankingAccount {
+    enum BankingAccountOpenStatus {
+        BANKING_ACCOUNT_OPEN_STATUS_OPEN = 0;
+        BANKING_ACCOUNT_OPEN_STATUS_CLOSED = 1;
+    }
+
+    // A unique ID of the account adhering to the standards for ID permanence
+    string accountId = 1;
+
+    // Date that the account was created (if known)
+    string creationDate = 2;
+
+    // The display name of the account as defined by the bank. This should not incorporate account numbers or PANs. If it does the values should be masked according to the rules of the MaskedAccountString common type.
+    string displayName = 3;
+
+    // Flag indicating that the customer associated with the authorisation is an owner of the account. Does not indicate sole ownership, however. If not present then 'true' is assumed
+    bool isOwned = 4;
+
+    // A masked version of the account. Whether BSB/Account Number, Credit Card PAN or another number
+    string maskedNumber = 5;
+
+    // A customer supplied nick name for the account
+    string nickname = 6;
+
+    // Open or closed status for the account. If not present then OPEN is assumed
+    BankingAccountOpenStatus openStatus = 7;
+    BankingProductCategory productCategory = 8;
+
+    // The unique identifier of the account as defined by the data holder (akin to model number for the account)
+    string productName = 9;
+}
+
+message BankingAccountDetail {}
+
+message BankingAuthorisedEntity {
+    // Australian Business Number for the authorised entity
+    string abn = 1;
+
+    // Australian Company Number for the authorised entity
+    string acn = 2;
+
+    // Australian Registered Body Number for the authorised entity
+    string arbn = 3;
+
+    // Description of the authorised entity derived from previously executed direct debits
+    string description = 4;
+
+    // Name of the financial institution through which the direct debit will be executed. Is required unless the payment is made via a credit card scheme
+    string financialInstitution = 5;
+}
+
+message BankingBalance {
+    // A unique ID of the account adhering to the standards for ID permanence
+    string accountId = 1;
+
+    // Object representing the available limit amortised according to payment schedule. Assumed to be zero if absent
+    string amortisedLimit = 2;
+
+    // Balance representing the amount of funds available for transfer. Assumed to be zero or positive
+    string availableBalance = 3;
+
+    // Object representing the maximum amount of credit that is available for this account. Assumed to be zero if absent
+    string creditLimit = 4;
+
+    // The currency for the balance amounts. If absent assumed to be AUD
+    string currency = 5;
+
+    // The balance of the account at this time. Should align to the balance available via other channels such as Internet Banking. Assumed to be negative if the customer has money owing
+    string currentBalance = 6;
+
+    // Optional array of balances for the account in other currencies. Included to support accounts that support multi-currency purses such as Travel Cards
+    repeated BankingBalancePurse purses = 7;
+}
+
+message BankingBalancePurse {
+    // The balance available for this additional currency purse
+    string amount = 1;
+
+    // The currency for the purse
+    string currency = 2;
+}
+
+message BankingBillerPayee {
+    // BPAY Biller Code of the Biller
+    string billerCode = 1;
+
+    // Name of the Biller
+    string billerName = 2;
+
+    // BPAY CRN of the Biller. If the contents of the CRN match the format of a Credit Card PAN then it should be masked using the rules applicable for the MaskedPANString common type
+    string crn = 3;
+}
+
+message BankingCreditCardAccount {
+    // The minimum payment amount due for the next card payment
+    string minPaymentAmount = 1;
+
+    // If absent assumes AUD
+    string paymentCurrency = 2;
+
+    // The amount due for the next card payment
+    string paymentDueAmount = 3;
+
+    // Date that the next payment for the card is due
+    string paymentDueDate = 4;
+}
+
+message BankingDirectDebit {
+    // A unique ID of the account adhering to the standards for ID permanence.
+    string accountId = 1;
+    BankingAuthorisedEntity authorisedEntity = 2;
+
+    // The amount of the last debit executed under this authorisation
+    string lastDebitAmount = 3;
+
+    // The date and time of the last debit executed under this authorisation
+    string lastDebitDateTime = 4;
+}
+
+message BankingDomesticPayee {
+    enum BankingDomesticPayeePayeeAccountUType {
+        BANKING_DOMESTIC_PAYEE_PAYEE_ACCOUNT_U_TYPE_ACCOUNT = 0;
+        BANKING_DOMESTIC_PAYEE_PAYEE_ACCOUNT_U_TYPE_CARD = 1;
+        BANKING_DOMESTIC_PAYEE_PAYEE_ACCOUNT_U_TYPE_PAY_ID = 2;
+    }
+
+    BankingDomesticPayeeAccount account = 1;
+    BankingDomesticPayeeCard card = 2;
+    BankingDomesticPayeePayId payId = 3;
+
+    // Type of account object included. Valid values are: **account** A standard Australian account defined by BSB/Account Number. **card** A credit or charge card to pay to (note that PANs are masked). **payId** A PayID recognised by NPP
+    BankingDomesticPayeePayeeAccountUType payeeAccountUType = 4;
+}
+
+message BankingDomesticPayeeAccount {
+    // Name of the account to pay to
+    string accountName = 1;
+
+    // Number of the account to pay to
+    string accountNumber = 2;
+
+    // BSB of the account to pay to
+    string bsb = 3;
+}
+
+message BankingDomesticPayeeCard {
+    // Name of the account to pay to
+    string cardNumber = 1;
+}
+
+message BankingDomesticPayeePayId {
+    enum BankingDomesticPayeePayIdType {
+        BANKING_DOMESTIC_PAYEE_PAY_ID_TYPE_EMAIL = 0;
+        BANKING_DOMESTIC_PAYEE_PAY_ID_TYPE_TELEPHONE = 1;
+        BANKING_DOMESTIC_PAYEE_PAY_ID_TYPE_ABN = 2;
+        BANKING_DOMESTIC_PAYEE_PAY_ID_TYPE_ORG_IDENTIFIER = 3;
+    }
+
+    // The identifier of the PayID (dependent on type)
+    string identifier = 1;
+
+    // The name assigned to the PayID by the owner of the PayID
+    string name = 2;
+
+    // The type of the PayID
+    BankingDomesticPayeePayIdType type = 3;
+}
+
+message BankingInternationalPayee {
+    BankingInternationalPayeeBankDetails bankDetails = 1;
+    BankingInternationalPayeeBeneficiaryDetails beneficiaryDetails = 2;
+}
+
+message BankingInternationalPayeeBankDetails {
+    // Account Targeted for payment
+    string accountNumber = 1;
+    BankingInternationalPayeeBankDetailsBankAddress bankAddress = 2;
+
+    // Swift bank code.  Aligns with standard [ISO 9362](https://www.iso.org/standard/60390.html)
+    string beneficiaryBankBIC = 3;
+
+    // Number for the Clearing House Interbank Payments System
+    string chipNumber = 4;
+
+    // Country of the recipient institution. A valid [ISO 3166 Alpha-3](https://www.iso.org/iso-3166-country-codes.html) country code
+    string country = 5;
+
+    // Number for Fedwire payment (Federal Reserve Wire Network)
+    string fedWireNumber = 6;
+
+    // The legal entity identifier (LEI) for the beneficiary.  Aligns with [ISO 17442](https://www.iso.org/standard/59771.html)
+    string legalEntityIdentifier = 7;
+
+    // International bank routing number
+    string routingNumber = 8;
+
+    // Sort code used for account identification in some jurisdictions
+    string sortCode = 9;
+}
+
+message BankingInternationalPayeeBankDetailsBankAddress {
+    // Address of the recipient Bank
+    string address = 1;
+
+    // Name of the recipient Bank
+    string name = 2;
+}
+
+message BankingInternationalPayeeBeneficiaryDetails {
+    // Country where the beneficiary resides. A valid [ISO 3166 Alpha-3](https://www.iso.org/iso-3166-country-codes.html) country code
+    string country = 1;
+
+    // Response message for the payment
+    string message = 2;
+
+    // Name of the beneficiary
+    string name = 3;
+}
+
+message BankingLoanAccount {
+    enum BankingLoanAccountRepaymentType {
+        BANKING_LOAN_ACCOUNT_REPAYMENT_TYPE_INTEREST_ONLY = 0;
+        BANKING_LOAN_ACCOUNT_REPAYMENT_TYPE_PRINCIPAL_AND_INTEREST = 1;
+    }
+
+    // Date that the loan is due to be repaid in full
+    string loanEndDate = 1;
+
+    // Maximum amount of funds that can be redrawn. If not present redraw is not available even if the feature exists for the account
+    string maxRedraw = 2;
+
+    // If absent assumes AUD
+    string maxRedrawCurrency = 3;
+
+    // Minimum amount of next instalment
+    string minInstalmentAmount = 4;
+
+    // If absent assumes AUD
+    string minInstalmentCurrency = 5;
+
+    // Minimum redraw amount
+    string minRedraw = 6;
+
+    // If absent assumes AUD
+    string minRedrawCurrency = 7;
+
+    // Next date that an instalment is required
+    string nextInstalmentDate = 8;
+
+    // Set to true if one or more offset accounts are configured for this loan account
+    bool offsetAccountEnabled = 9;
+
+    // The accountIDs of the configured offset accounts attached to this loan. Only offset accounts that can be accessed under the current authorisation should be included. It is expected behaviour that offsetAccountEnabled is set to true but the offsetAccountIds field is absent or empty. This represents a situation where an offset account exists but details can not be accessed under the current authorisation
+    repeated string offsetAccountIds = 10;
+
+    // Optional original loan value
+    string originalLoanAmount = 11;
+
+    // If absent assumes AUD
+    string originalLoanCurrency = 12;
+
+    // Optional original start date for the loan
+    string originalStartDate = 13;
+
+    // The expected or required repayment frequency. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax)
+    string repaymentFrequency = 14;
+
+    // Options in place for repayments. If absent defaults to PRINCIPAL_AND_INTEREST
+    BankingLoanAccountRepaymentType repaymentType = 15;
+}
+
+message BankingPayee {
+    enum BankingPayeeType {
+        BANKING_PAYEE_TYPE_DOMESTIC = 0;
+        BANKING_PAYEE_TYPE_INTERNATIONAL = 1;
+        BANKING_PAYEE_TYPE_BILLER = 2;
+    }
+
+    // The date the payee was created by the customer
+    string creationDate = 1;
+
+    // A description of the payee provided by the customer
+    string description = 2;
+
+    // The short display name of the payee as provided by the customer
+    string nickname = 3;
+
+    // ID of the payee adhering to the rules of ID permanence
+    string payeeId = 4;
+
+    // The type of payee. DOMESTIC means a registered payee for domestic payments including NPP. INTERNATIONAL means a registered payee for international payments. BILLER means a registered payee for BPAY
+    BankingPayeeType type = 5;
+}
+
+message BankingPayeeDetail {}
+
+message BankingProductBundle {
+    // Display text providing more information on the bundle
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on the bundle criteria and benefits
+    string additionalInfoUri = 2;
+
+    // Description of the bundle
+    string description = 3;
+
+    // Name of the bundle
+    string name = 4;
+
+    // Array of product IDs for products included in the bundle that are available via the product end points.  Note that this array is not intended to represent a comprehensive model of the products included in the bundle and some products available for the bundle may not be available via the product reference end points
+    repeated string productIds = 5;
+}
+
+message BankingProductConstraint {
+    enum BankingProductConstraintConstraintType {
+        BANKING_PRODUCT_CONSTRAINT_CONSTRAINT_TYPE_MIN_BALANCE = 0;
+        BANKING_PRODUCT_CONSTRAINT_CONSTRAINT_TYPE_MAX_BALANCE = 1;
+        BANKING_PRODUCT_CONSTRAINT_CONSTRAINT_TYPE_OPENING_BALANCE = 2;
+        BANKING_PRODUCT_CONSTRAINT_CONSTRAINT_TYPE_MAX_LIMIT = 3;
+        BANKING_PRODUCT_CONSTRAINT_CONSTRAINT_TYPE_MIN_LIMIT = 4;
+    }
+
+    // Display text providing more information the constraint
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on the constraint
+    string additionalInfoUri = 2;
+
+    // Generic field containing additional information relevant to the [constraintType](#tocSproductconstrainttypedoc) specified.  Whether mandatory or not is dependent on the value of [constraintType](#tocSproductconstrainttypedoc)
+    string additionalValue = 3;
+
+    // The type of constraint described.  See the next section for an overview of valid values and their meaning
+    BankingProductConstraintConstraintType constraintType = 4;
+}
+
+message BankingProductDepositRate {
+    enum BankingProductDepositRateDepositRateType {
+        BANKING_PRODUCT_DEPOSIT_RATE_DEPOSIT_RATE_TYPE_FIXED = 0;
+        BANKING_PRODUCT_DEPOSIT_RATE_DEPOSIT_RATE_TYPE_BONUS = 1;
+        BANKING_PRODUCT_DEPOSIT_RATE_DEPOSIT_RATE_TYPE_BUNDLE_BONUS = 2;
+        BANKING_PRODUCT_DEPOSIT_RATE_DEPOSIT_RATE_TYPE_VARIABLE = 3;
+        BANKING_PRODUCT_DEPOSIT_RATE_DEPOSIT_RATE_TYPE_INTRODUCTORY = 4;
+        BANKING_PRODUCT_DEPOSIT_RATE_DEPOSIT_RATE_TYPE_FLOATING = 5;
+        BANKING_PRODUCT_DEPOSIT_RATE_DEPOSIT_RATE_TYPE_MARKET_LINKED = 6;
+    }
+
+    // Display text providing more information on the rate
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on this rate
+    string additionalInfoUri = 2;
+
+    // Generic field containing additional information relevant to the [depositRateType](#tocSproductdepositratetypedoc) specified. Whether mandatory or not is dependent on the value of [depositRateType](#tocSproductdepositratetypedoc)
+    string additionalValue = 3;
+
+    // The period after which the calculated amount(s) (see calculationFrequency) are 'applied' (i.e. debited or credited) to the account. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax)
+    string applicationFrequency = 4;
+
+    // The period after which the rate is applied to the balance to calculate the amount due for the period. Calculation of the amount is often daily (as balances may change) but accumulated until the total amount is 'applied' to the account (see applicationFrequency). Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax)
+    string calculationFrequency = 5;
+
+    // The type of rate (base, bonus, etc). See the next section for an overview of valid values and their meaning
+    BankingProductDepositRateDepositRateType depositRateType = 6;
+
+    // The rate to be applied
+    string rate = 7;
+
+    // Rate tiers applicable for this rate
+    repeated BankingProductRateTier tiers = 8;
+}
+
+message BankingProductDetail {}
+
+message BankingProductDiscount {
+    enum BankingProductDiscountDiscountType {
+        BANKING_PRODUCT_DISCOUNT_DISCOUNT_TYPE_BALANCE = 0;
+        BANKING_PRODUCT_DISCOUNT_DISCOUNT_TYPE_DEPOSITS = 1;
+        BANKING_PRODUCT_DISCOUNT_DISCOUNT_TYPE_PAYMENTS = 2;
+        BANKING_PRODUCT_DISCOUNT_DISCOUNT_TYPE_FEE_CAP = 3;
+        BANKING_PRODUCT_DISCOUNT_DISCOUNT_TYPE_ELIGIBILITY_ONLY = 4;
+    }
+
+    // A discount rate calculated based on a proportion of the calculated interest accrued on the account. Note that the currency of the fee discount is expected to be the same as the currency of the fee itself. One of amount, balanceRate, transactionRate, accruedRate and feeRate is mandatory. Unless noted in additionalInfo, assumes the application and calculation frequency are the same as the corresponding fee
+    string accruedRate = 1;
+
+    // Display text providing more information on the discount
+    string additionalInfo = 2;
+
+    // Link to a web page with more information on this discount
+    string additionalInfoUri = 3;
+
+    // Generic field containing additional information relevant to the [discountType](#tocSproductdiscounttypedoc) specified. Whether mandatory or not is dependent on the value of [discountType](#tocSproductdiscounttypedoc)
+    string additionalValue = 4;
+
+    // Value of the discount. When following properties include one of amount, balanceRate, transactionRate, accruedRate and feeRate is mandatory
+    string amount = 5;
+
+    // A discount rate calculated based on a proportion of the balance. Note that the currency of the fee discount is expected to be the same as the currency of the fee itself. One of amount, balanceRate, transactionRate, accruedRate and feeRate is mandatory. Unless noted in additionalInfo, assumes the application and calculation frequency are the same as the corresponding fee
+    string balanceRate = 6;
+
+    // Description of the discount
+    string description = 7;
+
+    // The type of discount. See the next section for an overview of valid values and their meaning
+    BankingProductDiscountDiscountType discountType = 8;
+
+    // Eligibility constraints that apply to this discount
+    repeated BankingProductDiscountEligibility eligibility = 9;
+
+    // A discount rate calculated based on a proportion of the fee to which this discount is attached. Note that the currency of the fee discount is expected to be the same as the currency of the fee itself. One of amount, balanceRate, transactionRate, accruedRate and feeRate is mandatory. Unless noted in additionalInfo, assumes the application and calculation frequency are the same as the corresponding fee
+    string feeRate = 10;
+
+    // A discount rate calculated based on a proportion of a transaction. Note that the currency of the fee discount is expected to be the same as the currency of the fee itself. One of amount, balanceRate, transactionRate, accruedRate and feeRate is mandatory
+    string transactionRate = 11;
+}
+
+message BankingProductDiscountEligibility {
+    enum BankingProductDiscountEligibilityDiscountEligibilityType {
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_BUSINESS = 0;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_PENSION_RECIPIENT = 1;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_MIN_AGE = 2;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_MAX_AGE = 3;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_MIN_INCOME = 4;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_MIN_TURNOVER = 5;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_STAFF = 6;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_STUDENT = 7;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_EMPLOYMENT_STATUS = 8;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_RESIDENCY_STATUS = 9;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_NATURAL_PERSON = 10;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_INTRODUCTORY = 11;
+        BANKING_PRODUCT_DISCOUNT_ELIGIBILITY_DISCOUNT_ELIGIBILITY_TYPE_OTHER = 12;
+    }
+
+    // Display text providing more information on this eligibility constraint
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on this eligibility constraint
+    string additionalInfoUri = 2;
+
+    // Generic field containing additional information relevant to the [discountEligibilityType](#tocSproductdiscounteligibilitydoc) specified. Whether mandatory or not is dependent on the value of [discountEligibilityType](#tocSproductdiscounteligibilitydoc)
+    string additionalValue = 3;
+
+    // The type of the specific eligibility constraint for a discount
+    BankingProductDiscountEligibilityDiscountEligibilityType discountEligibilityType = 4;
+}
+
+message BankingProductEligibility {
+    enum BankingProductEligibilityEligibilityType {
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_BUSINESS = 0;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_PENSION_RECIPIENT = 1;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_MIN_AGE = 2;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_MAX_AGE = 3;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_MIN_INCOME = 4;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_MIN_TURNOVER = 5;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_STAFF = 6;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_STUDENT = 7;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_EMPLOYMENT_STATUS = 8;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_RESIDENCY_STATUS = 9;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_NATURAL_PERSON = 10;
+        BANKING_PRODUCT_ELIGIBILITY_ELIGIBILITY_TYPE_OTHER = 11;
+    }
+
+    // Display text providing more information on the [eligibility](#tocSproducteligibilitytypedoc) criteria. Mandatory if the field is set to OTHER
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on this eligibility criteria
+    string additionalInfoUri = 2;
+
+    // Generic field containing additional information relevant to the [eligibilityType](#tocSproducteligibilitytypedoc) specified. Whether mandatory or not is dependent on the value of [eligibilityType](#tocSproducteligibilitytypedoc)
+    string additionalValue = 3;
+
+    // The type of eligibility criteria described.  See the next section for an overview of valid values and their meaning
+    BankingProductEligibilityEligibilityType eligibilityType = 4;
+}
+
+message BankingProductFeature {
+    enum BankingProductFeatureFeatureType {
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_CARD_ACCESS = 0;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_ADDITIONAL_CARDS = 1;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_UNLIMITED_TXNS = 2;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_FREE_TXNS = 3;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_FREE_TXNS_ALLOWANCE = 4;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_LOYALTY_PROGRAM = 5;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_OFFSET = 6;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_OVERDRAFT = 7;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_REDRAW = 8;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_INSURANCE = 9;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_BALANCE_TRANSFERS = 10;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_INTEREST_FREE = 11;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_INTEREST_FREE_TRANSFERS = 12;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_DIGITAL_WALLET = 13;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_DIGITAL_BANKING = 14;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_NPP_PAYID = 15;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_NPP_ENABLED = 16;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_DONATE_INTEREST = 17;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_BILL_PAYMENT = 18;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_COMPLEMENTARY_PRODUCT_DISCOUNTS = 19;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_BONUS_REWARDS = 20;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_NOTIFICATIONS = 21;
+        BANKING_PRODUCT_FEATURE_FEATURE_TYPE_OTHER = 22;
+    }
+
+    // Display text providing more information on the feature. Mandatory if the [feature type](#tocSproductfeaturetypedoc) is set to OTHER
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on this feature
+    string additionalInfoUri = 2;
+
+    // Generic field containing additional information relevant to the [featureType](#tocSproductfeaturetypedoc) specified. Whether mandatory or not is dependent on the value of the [featureType.](#tocSproductfeaturetypedoc)
+    string additionalValue = 3;
+
+    // The type of feature described
+    BankingProductFeatureFeatureType featureType = 4;
+}
+
+message BankingProductFee {
+    enum BankingProductFeeFeeType {
+        BANKING_PRODUCT_FEE_FEE_TYPE_PERIODIC = 0;
+        BANKING_PRODUCT_FEE_FEE_TYPE_TRANSACTION = 1;
+        BANKING_PRODUCT_FEE_FEE_TYPE_WITHDRAWAL = 2;
+        BANKING_PRODUCT_FEE_FEE_TYPE_DEPOSIT = 3;
+        BANKING_PRODUCT_FEE_FEE_TYPE_PAYMENT = 4;
+        BANKING_PRODUCT_FEE_FEE_TYPE_PURCHASE = 5;
+        BANKING_PRODUCT_FEE_FEE_TYPE_EVENT = 6;
+        BANKING_PRODUCT_FEE_FEE_TYPE_UPFRONT = 7;
+        BANKING_PRODUCT_FEE_FEE_TYPE_EXIT = 8;
+    }
+
+    // The indicative frequency with which the fee is calculated on the account. Only applies if balanceRate or accruedRate is also present. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax)
+    string accrualFrequency = 1;
+
+    // A fee rate calculated based on a proportion of the calculated interest accrued on the account. One of amount, balanceRate, transactionRate and accruedRate is mandatory
+    string accruedRate = 2;
+
+    // Display text providing more information on the fee
+    string additionalInfo = 3;
+
+    // Link to a web page with more information on this fee
+    string additionalInfoUri = 4;
+
+    // Generic field containing additional information relevant to the [feeType](#tocSproductfeetypedoc) specified. Whether mandatory or not is dependent on the value of [feeType](#tocSproductfeetypedoc)
+    string additionalValue = 5;
+
+    // The amount charged for the fee. One of amount, balanceRate, transactionRate and accruedRate is mandatory
+    string amount = 6;
+
+    // A fee rate calculated based on a proportion of the balance. One of amount, balanceRate, transactionRate and accruedRate is mandatory
+    string balanceRate = 7;
+
+    // The currency the fee will be charged in. Assumes AUD if absent
+    string currency = 8;
+
+    // An optional list of discounts to this fee that may be available
+    repeated BankingProductDiscount discounts = 9;
+
+    // The type of fee
+    BankingProductFeeFeeType feeType = 10;
+
+    // Name of the fee
+    string name = 11;
+
+    // A fee rate calculated based on a proportion of a transaction. One of amount, balanceRate, transactionRate and accruedRate is mandatory
+    string transactionRate = 12;
+}
+
+message BankingProductLendingRate {
+    enum BankingProductLendingRateInterestPaymentDue {
+        BANKING_PRODUCT_LENDING_RATE_INTEREST_PAYMENT_DUE_IN_ARREARS = 0;
+        BANKING_PRODUCT_LENDING_RATE_INTEREST_PAYMENT_DUE_IN_ADVANCE = 1;
+    }
+
+    enum BankingProductLendingRateLendingRateType {
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_FIXED = 0;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_VARIABLE = 1;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_INTRODUCTORY = 2;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_DISCOUNT = 3;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_PENALTY = 4;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_FLOATING = 5;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_MARKET_LINKED = 6;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_CASH_ADVANCE = 7;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_PURCHASE = 8;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_BUNDLE_DISCOUNT_FIXED = 9;
+        BANKING_PRODUCT_LENDING_RATE_LENDING_RATE_TYPE_BUNDLE_DISCOUNT_VARIABLE = 10;
+    }
+
+    // Display text providing more information on the rate.
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on this rate
+    string additionalInfoUri = 2;
+
+    // Generic field containing additional information relevant to the [lendingRateType](#tocSproductlendingratetypedoc) specified. Whether mandatory or not is dependent on the value of [lendingRateType](#tocSproductlendingratetypedoc)
+    string additionalValue = 3;
+
+    // The period after which the calculated amount(s) (see calculationFrequency) are 'applied' (i.e. debited or credited) to the account. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax)
+    string applicationFrequency = 4;
+
+    // The period after which the rate is applied to the balance to calculate the amount due for the period. Calculation of the amount is often daily (as balances may change) but accumulated until the total amount is 'applied' to the account (see applicationFrequency). Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax)
+    string calculationFrequency = 5;
+
+    // A comparison rate equivalent for this rate
+    string comparisonRate = 6;
+
+    // When loan payments are due to be paid within each period. The investment benefit of earlier payments affect the rate that can be offered
+    BankingProductLendingRateInterestPaymentDue interestPaymentDue = 7;
+
+    // The type of rate (fixed, variable, etc). See the next section for an overview of valid values and their meaning
+    BankingProductLendingRateLendingRateType lendingRateType = 8;
+
+    // The rate to be applied
+    string rate = 9;
+
+    // Rate tiers applicable for this rate
+    repeated BankingProductRateTier tiers = 10;
+}
+
+// Defines a condition for the applicability of a tiered rate
+message BankingProductRateCondition {
+    // Display text providing more information on the condition
+    string additionalInfo = 1;
+
+    // Link to a web page with more information on this condition
+    string additionalInfoUri = 2;
+}
+
+// Defines the criteria and conditions for which a rate applies
+message BankingProductRateTier {
+    enum BankingProductRateTierRateApplicationMethod {
+        BANKING_PRODUCT_RATE_TIER_RATE_APPLICATION_METHOD_WHOLE_BALANCE = 0;
+        BANKING_PRODUCT_RATE_TIER_RATE_APPLICATION_METHOD_PER_TIER = 1;
+    }
+
+    enum BankingProductRateTierUnitOfMeasure {
+        BANKING_PRODUCT_RATE_TIER_UNIT_OF_MEASURE_DOLLAR = 0;
+        BANKING_PRODUCT_RATE_TIER_UNIT_OF_MEASURE_PERCENT = 1;
+        BANKING_PRODUCT_RATE_TIER_UNIT_OF_MEASURE_MONTH = 2;
+        BANKING_PRODUCT_RATE_TIER_UNIT_OF_MEASURE_DAY = 3;
+    }
+
+    BankingProductRateCondition applicabilityConditions = 1;
+
+    // The number of tierUnitOfMeasure units that form the upper bound of the tier or band. For a tier with a discrete value (as opposed to a range of values e.g. 1 month) this must be the same as tierValueMinimum. Where this is the same as the tierValueMinimum value of the next-higher tier the referenced tier should be exclusive of this value. For example a term deposit of 2 months falls into the upper tier of the following tiers: (1 – 2 months, 2 – 3 months). If absent the tier's range has no upper bound.
+    double maximumValue = 2;
+
+    // The number of tierUnitOfMeasure units that form the lower bound of the tier. The tier should be inclusive of this value
+    double minimumValue = 3;
+
+    // A display name for the tier
+    string name = 4;
+
+    // The method used to calculate the amount to be applied using one or more tiers. A single rate may be applied to the entire balance or each applicable tier rate is applied to the portion of the balance that falls into that tier (referred to as 'bands' or 'steps')
+    BankingProductRateTierRateApplicationMethod rateApplicationMethod = 5;
+    BankingProductRateTierSubTier subTier = 6;
+
+    // The unit of measure that applies to the tierValueMinimum and tierValueMaximum values e.g. a **DOLLAR** amount. **PERCENT** (in the case of loan-to-value ratio or LVR). Tier term period representing a discrete number of **MONTH**'s or **DAY**'s (in the case of term deposit tiers)
+    BankingProductRateTierUnitOfMeasure unitOfMeasure = 7;
+}
+
+// Defines the sub-tier criteria and conditions for which a rate applies
+message BankingProductRateTierSubTier {
+    enum BankingProductRateTierSubTierRateApplicationMethod {
+        BANKING_PRODUCT_RATE_TIER_SUB_TIER_RATE_APPLICATION_METHOD_WHOLE_BALANCE = 0;
+        BANKING_PRODUCT_RATE_TIER_SUB_TIER_RATE_APPLICATION_METHOD_PER_TIER = 1;
+    }
+
+    enum BankingProductRateTierSubTierUnitOfMeasure {
+        BANKING_PRODUCT_RATE_TIER_SUB_TIER_UNIT_OF_MEASURE_DOLLAR = 0;
+        BANKING_PRODUCT_RATE_TIER_SUB_TIER_UNIT_OF_MEASURE_PERCENT = 1;
+        BANKING_PRODUCT_RATE_TIER_SUB_TIER_UNIT_OF_MEASURE_MONTH = 2;
+        BANKING_PRODUCT_RATE_TIER_SUB_TIER_UNIT_OF_MEASURE_DAY = 3;
+    }
+
+    BankingProductRateCondition applicabilityConditions = 1;
+
+    // The number of tierUnitOfMeasure units that form the upper bound of the tier or band. For a tier with a discrete value (as opposed to a range of values e.g. 1 month) this must be the same as tierValueMinimum. Where this is the same as the tierValueMinimum value of the next-higher tier the referenced tier should be exclusive of this value. For example a term deposit of 2 months falls into the upper tier of the following tiers: (1 – 2 months, 2 – 3 months)
+    double maximumValue = 2;
+
+    // The number of tierUnitOfMeasure units that form the lower bound of the tier. The tier should be inclusive of this value
+    double minimumValue = 3;
+
+    // A display name for the tier
+    string name = 4;
+
+    // The method used to calculate the amount to be applied using one or more tiers. A single rate may be applied to the entire balance or each applicable tier rate is applied to the portion of the balance that falls into that tier (referred to as 'bands' or 'steps')
+    BankingProductRateTierSubTierRateApplicationMethod rateApplicationMethod = 5;
+
+    // The unit of measure that applies to the tierValueMinimum and tierValueMaximum values e.g. a **DOLLAR** amount. **PERCENT** (in the case of loan-to-value ratio or LVR). Tier term period representing a discrete number of **MONTH**'s or **DAY**'s (in the case of term deposit tiers)
+    BankingProductRateTierSubTierUnitOfMeasure unitOfMeasure = 6;
+}
+
+message BankingProductV2 {
+    BankingProductV2AdditionalInformation additionalInformation = 1;
+
+    // A link to an application web page where this product can be applied for.
+    string applicationUri = 2;
+
+    // A label of the brand for the product. Able to be used for filtering. For data holders with single brands this value is still required
+    string brand = 3;
+
+    // An optional display name of the brand
+    string brandName = 4;
+
+    // An array of card art images
+    repeated BankingProductV2CardArt cardArt = 5;
+
+    // A description of the product
+    string description = 6;
+
+    // The date and time from which this product is effective (ie. is available for origination).  Used to enable the articulation of products to the regime before they are available for customers to originate
+    string effectiveFrom = 7;
+
+    // The date and time at which this product will be retired and will no longer be offered.  Used to enable the managed deprecation of products
+    string effectiveTo = 8;
+
+    // Indicates whether the product is specifically tailored to a circumstance.  In this case fees and prices are significantly negotiated depending on context. While all products are open to a degree of tailoring this flag indicates that tailoring is expected and thus that the provision of specific fees and rates is not applicable
+    bool isTailored = 9;
+
+    // The last date and time that the information for this product was changed (or the creation date for the product if it has never been altered)
+    string lastUpdated = 10;
+
+    // The display name of the product
+    string name = 11;
+    BankingProductCategory productCategory = 12;
+
+    // A data holder specific unique identifier for this product. This identifier must be unique to a product but does not otherwise need to adhere to ID permanence guidelines.
+    string productId = 13;
+}
+
+// Object that contains links to additional information on specific topics
+message BankingProductV2AdditionalInformation {
+    // Description of a bundle that this product can be part of
+    string bundleUri = 1;
+
+    // Eligibility rules and criteria for the product
+    string eligibilityUri = 2;
+
+    // Description of fees, pricing, discounts, exemptions and bonuses for the product
+    string feesAndPricingUri = 3;
+
+    // General overview of the product
+    string overviewUri = 4;
+
+    // Terms and conditions for the product
+    string termsUri = 5;
+}
+
+message BankingProductV2CardArt {
+    // Link to a PNG, JPG or GIF image with proportions defined by ISO 7810 ID-1 and width no greater than 512 pixels
+    string imageUri = 1;
+
+    // Display label for the specific image
+    string title = 2;
+}
+
+message BankingScheduledPayment {
+    enum BankingScheduledPaymentStatus {
+        BANKING_SCHEDULED_PAYMENT_STATUS_ACTIVE = 0;
+        BANKING_SCHEDULED_PAYMENT_STATUS_SKIP = 1;
+        BANKING_SCHEDULED_PAYMENT_STATUS_INACTIVE = 2;
+    }
+
+    BankingScheduledPaymentFrom from = 1;
+
+    // The short display name of the payee as provided by the customer
+    string nickname = 2;
+
+    // The reference for the transaction that will be provided by the originating institution. Empty string if no data provided
+    string payeeReference = 3;
+
+    // The reference for the transaction that will be used by the originating institution for the purposes of constructing a statement narrative on the payer’s account. Empty string if no data provided
+    string payerReference = 4;
+    repeated BankingScheduledPaymentSet paymentSet = 5;
+    BankingScheduledPaymentRecurrence recurrence = 6;
+
+    // A unique ID of the scheduled payment adhering to the standards for ID permanence
+    string scheduledPaymentId = 7;
+
+    // Indicates whether the schedule is currently active. The value SKIP is equivalent to ACTIVE except that the customer has requested the next normal occurrence to be skipped.
+    BankingScheduledPaymentStatus status = 8;
+}
+
+// Object containing details of the source of the payment. Currently only specifies an account ID but provided as an object to facilitate future extensibility and consistency with the to object
+message BankingScheduledPaymentFrom {
+    // ID of the account that is the source of funds for the payment
+    string accountId = 1;
+}
+
+message BankingScheduledPaymentInterval {
+    // Uses an interval to define the ordinal day within the interval defined by the interval field on which the payment occurs. If the resulting duration is 0 days in length or larger than the number of days in the interval then the payment will occur on the last day of the interval. A duration of 1 day indicates the first day of the interval. If absent the assumed value is P1D. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax) with components less than a day in length ignored. The first day of a week is considered to be Monday.
+    string dayInInterval = 1;
+
+    // An interval for the payment. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations)  (excludes recurrence syntax) with components less than a day in length ignored. This duration defines the period between payments starting with nextPaymentDate
+    string interval = 2;
+}
+
+// Object containing the detail of the schedule for the payment
+message BankingScheduledPaymentRecurrence {
+    enum BankingScheduledPaymentRecurrenceRecurrenceUType {
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_RECURRENCE_U_TYPE_ONCE_OFF = 0;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_RECURRENCE_U_TYPE_INTERVAL_SCHEDULE = 1;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_RECURRENCE_U_TYPE_LAST_WEEK_DAY = 2;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_RECURRENCE_U_TYPE_EVENT_BASED = 3;
+    }
+
+    BankingScheduledPaymentRecurrenceEventBased eventBased = 1;
+    BankingScheduledPaymentRecurrenceIntervalSchedule intervalSchedule = 2;
+    BankingScheduledPaymentRecurrenceLastWeekday lastWeekDay = 3;
+
+    // The date of the next payment under the recurrence schedule
+    string nextPaymentDate = 4;
+    BankingScheduledPaymentRecurrenceOnceOff onceOff = 5;
+
+    // The type of recurrence used to define the schedule
+    BankingScheduledPaymentRecurrenceRecurrenceUType recurrenceUType = 6;
+}
+
+// Indicates that the schedule of payments is defined according to an external event that cannot be predetermined. Mandatory if recurrenceUType is set to eventBased
+message BankingScheduledPaymentRecurrenceEventBased {
+    // Description of the event and conditions that will result in the payment. Expected to be formatted for display to a customer
+    string description = 1;
+}
+
+// Indicates that the schedule of payments is defined by a series of intervals. Mandatory if recurrenceUType is set to intervalSchedule
+message BankingScheduledPaymentRecurrenceIntervalSchedule {
+    enum BankingScheduledPaymentRecurrenceIntervalScheduleNonBusinessDayTreatment {
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_INTERVAL_SCHEDULE_NON_BUSINESS_DAY_TREATMENT_AFTER = 0;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_INTERVAL_SCHEDULE_NON_BUSINESS_DAY_TREATMENT_BEFORE = 1;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_INTERVAL_SCHEDULE_NON_BUSINESS_DAY_TREATMENT_ON = 2;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_INTERVAL_SCHEDULE_NON_BUSINESS_DAY_TREATMENT_ONLY = 3;
+    }
+
+    // The limit date after which no more payments should be made using this schedule. If both finalPaymentDate and paymentsRemaining are present then payments will stop according to the most constraining value. If neither field is present the payments will continue indefinitely
+    string finalPaymentDate = 1;
+
+    // An array of interval objects defining the payment schedule.  Each entry in the array is additive, in that it adds payments to the overall payment schedule.  If multiple intervals result in a payment on the same day then only one payment will be made. Must have at least one entry
+    repeated BankingScheduledPaymentInterval intervals = 2;
+
+    // Enumerated field giving the treatment where a scheduled payment date is not a business day. If absent assumed to be ON.<br/>**AFTER** - If a scheduled payment date is a non-business day the payment will be made on the first business day after the scheduled payment date.<br/>**BEFORE** - If a scheduled payment date is a non-business day the payment will be made on the first business day before the scheduled payment date.<br/>**ON** - If a scheduled payment date is a non-business day the payment will be made on that day regardless.<br/>**ONLY** - Payments only occur on business days. If a scheduled payment date is a non-business day the payment will be ignored
+    BankingScheduledPaymentRecurrenceIntervalScheduleNonBusinessDayTreatment nonBusinessDayTreatment = 3;
+
+    // Indicates the number of payments remaining in the schedule. If both finalPaymentDate and paymentsRemaining are present then payments will stop according to the most constraining value, If neither field is present the payments will continue indefinitely
+    int32 paymentsRemaining = 4;
+}
+
+// Indicates that the schedule of payments is defined according to the last occurrence of a specific weekday in an interval. Mandatory if recurrenceUType is set to lastWeekDay
+message BankingScheduledPaymentRecurrenceLastWeekday {
+    enum BankingScheduledPaymentRecurrenceLastWeekdayLastWeekDay {
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_LAST_WEEK_DAY_MON = 0;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_LAST_WEEK_DAY_TUE = 1;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_LAST_WEEK_DAY_WED = 2;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_LAST_WEEK_DAY_THU = 3;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_LAST_WEEK_DAY_FRI = 4;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_LAST_WEEK_DAY_SAT = 5;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_LAST_WEEK_DAY_SUN = 6;
+    }
+
+    enum BankingScheduledPaymentRecurrenceLastWeekdayNonBusinessDayTreatment {
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_NON_BUSINESS_DAY_TREATMENT_AFTER = 0;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_NON_BUSINESS_DAY_TREATMENT_BEFORE = 1;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_NON_BUSINESS_DAY_TREATMENT_ON = 2;
+        BANKING_SCHEDULED_PAYMENT_RECURRENCE_LAST_WEEKDAY_NON_BUSINESS_DAY_TREATMENT_ONLY = 3;
+    }
+
+    // The limit date after which no more payments should be made using this schedule. If both finalPaymentDate and paymentsRemaining are present then payments will stop according to the most constraining value. If neither field is present the payments will continue indefinitely
+    string finalPaymentDate = 1;
+
+    // The interval for the payment. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax) with components less than a day in length ignored. This duration defines the period between payments starting with nextPaymentDate
+    string interval = 2;
+
+    // The weekDay specified. The payment will occur on the last occurrence of this weekday in the interval.
+    BankingScheduledPaymentRecurrenceLastWeekdayLastWeekDay lastWeekDay = 3;
+
+    // Enumerated field giving the treatment where a scheduled payment date is not a business day. If absent assumed to be ON.<br/>**AFTER** - If a scheduled payment date is a non-business day the payment will be made on the first business day after the scheduled payment date.<br/>**BEFORE** - If a scheduled payment date is a non-business day the payment will be made on the first business day before the scheduled payment date.<br/>**ON** - If a scheduled payment date is a non-business day the payment will be made on that day regardless.<br/>**ONLY** - Payments only occur on business days. If a scheduled payment date is a non-business day the payment will be ignored
+    BankingScheduledPaymentRecurrenceLastWeekdayNonBusinessDayTreatment nonBusinessDayTreatment = 4;
+
+    // Indicates the number of payments remaining in the schedule. If both finalPaymentDate and paymentsRemaining are present then payments will stop according to the most constraining value. If neither field is present the payments will continue indefinitely
+    int32 paymentsRemaining = 5;
+}
+
+// Indicates that the payment is a once off payment on a specific future date. Mandatory if recurrenceUType is set to onceOff
+message BankingScheduledPaymentRecurrenceOnceOff {
+    // The scheduled date for the once off payment
+    string paymentDate = 1;
+}
+
+// The set of payment amounts and destination accounts for this payment accommodating multi-part payments. A single entry indicates a simple payment with one destination account. Must have at least one entry
+message BankingScheduledPaymentSet {
+    // The amount of the next payment if known. Mandatory unless the isAmountCalculated field is set to true. Must be zero or positive if present
+    string amount = 1;
+
+    // The currency for the payment. AUD assumed if not present
+    string currency = 2;
+
+    // Flag indicating whether the amount of the payment is calculated based on the context of the event. For instance a payment to reduce the balance of a credit card to zero. If absent then false is assumed
+    bool isAmountCalculated = 3;
+    BankingScheduledPaymentTo to = 4;
+}
+
+// Object containing details of the destination of the payment. Used to specify a variety of payment destination types
+message BankingScheduledPaymentTo {
+    enum BankingScheduledPaymentToToUType {
+        BANKING_SCHEDULED_PAYMENT_TO_TO_U_TYPE_ACCOUNT_ID = 0;
+        BANKING_SCHEDULED_PAYMENT_TO_TO_U_TYPE_PAYEE_ID = 1;
+        BANKING_SCHEDULED_PAYMENT_TO_TO_U_TYPE_DOMESTIC = 2;
+        BANKING_SCHEDULED_PAYMENT_TO_TO_U_TYPE_BILLER = 3;
+        BANKING_SCHEDULED_PAYMENT_TO_TO_U_TYPE_INTERNATIONAL = 4;
+    }
+
+    // Present if toUType is set to accountId. Indicates that the payment is to another account that is accessible under the current consent
+    string accountId = 1;
+    BankingBillerPayee biller = 2;
+    BankingDomesticPayee domestic = 3;
+    BankingInternationalPayee international = 4;
+
+    // Present if toUType is set to payeeId. Indicates that the payment is to registered payee that can be accessed using the payee end point. If the Bank Payees scope has not been consented to then a payeeId should not be provided and the full payee details should be provided instead
+    string payeeId = 5;
+
+    // The type of object provided that specifies the destination of the funds for the payment.
+    BankingScheduledPaymentToToUType toUType = 6;
+}
+
+message BankingTermDepositAccount {
+    enum BankingTermDepositAccountMaturityInstructions {
+        BANKING_TERM_DEPOSIT_ACCOUNT_MATURITY_INSTRUCTIONS_ROLLED_OVER = 0;
+        BANKING_TERM_DEPOSIT_ACCOUNT_MATURITY_INSTRUCTIONS_PAID_OUT_AT_MATURITY = 1;
+    }
+
+    // The lodgement date of the original deposit
+    string lodgementDate = 1;
+
+    // Amount to be paid upon maturity. If absent it implies the amount to paid is variable and cannot currently be calculated
+    string maturityAmount = 2;
+
+    // If absent assumes AUD
+    string maturityCurrency = 3;
+
+    // Maturity date for the term deposit
+    string maturityDate = 4;
+
+    // Current instructions on action to be taken at maturity
+    BankingTermDepositAccountMaturityInstructions maturityInstructions = 5;
+}
+
+message BankingTransaction {
+    enum BankingTransactionStatus {
+        BANKING_TRANSACTION_STATUS_PENDING = 0;
+        BANKING_TRANSACTION_STATUS_POSTED = 1;
+    }
+
+    enum BankingTransactionType {
+        BANKING_TRANSACTION_TYPE_FEE = 0;
+        BANKING_TRANSACTION_TYPE_INTEREST_CHARGED = 1;
+        BANKING_TRANSACTION_TYPE_INTEREST_PAID = 2;
+        BANKING_TRANSACTION_TYPE_TRANSFER_OUTGOING = 3;
+        BANKING_TRANSACTION_TYPE_TRANSFER_INCOMING = 4;
+        BANKING_TRANSACTION_TYPE_PAYMENT = 5;
+        BANKING_TRANSACTION_TYPE_DIRECT_DEBIT = 6;
+        BANKING_TRANSACTION_TYPE_OTHER = 7;
+    }
+
+    // ID of the account for which transactions are provided
+    string accountId = 1;
+
+    // The value of the transaction. Negative values mean money was outgoing from the account
+    string amount = 2;
+
+    // 6 Digit APCA number for the initiating institution
+    string apcaNumber = 3;
+
+    // BPAY Biller Code for the transaction (if available)
+    string billerCode = 4;
+
+    // Name of the BPAY biller for the transaction (if available)
+    string billerName = 5;
+
+    // BPAY CRN for the transaction (if available)
+    string crn = 6;
+
+    // The currency for the transaction amount. AUD assumed if not present
+    string currency = 7;
+
+    // The transaction description as applied by the financial institution
+    string description = 8;
+
+    // The time the transaction was executed by the originating customer, if available
+    string executionDateTime = 9;
+
+    // True if extended information is available using the transaction detail end point. False if extended data is not available
+    bool isDetailAvailable = 10;
+
+    // The merchant category code (or MCC) for an outgoing payment to a merchant
+    string merchantCategoryCode = 11;
+
+    // Name of the merchant for an outgoing payment to a merchant
+    string merchantName = 12;
+
+    // The time the transaction was posted. This field is Mandatory if the transaction has status POSTED.  This is the time that appears on a standard statement
+    string postingDateTime = 13;
+
+    // The reference for the transaction provided by the originating institution. Empty string if no data provided
+    string reference = 14;
+
+    // Status of the transaction whether pending or posted. Note that there is currently no provision in the standards to guarantee the ability to correlate a pending transaction with an associated posted transaction
+    BankingTransactionStatus status = 15;
+
+    // A unique ID of the transaction adhering to the standards for ID permanence.  This is mandatory (through hashing if necessary) unless there are specific and justifiable technical reasons why a transaction cannot be uniquely identified for a particular account type
+    string transactionId = 16;
+
+    // The type of the transaction
+    BankingTransactionType type = 17;
+
+    // Date and time at which assets become available to the account owner in case of a credit entry, or cease to be available to the account owner in case of a debit transaction entry
+    string valueDateTime = 18;
+}
+
+message BankingTransactionDetail {}
+
+message BankingTransactionDetailExtendedData {
+    enum BankingTransactionDetailExtendedDataExtensionUType {
+        BANKING_TRANSACTION_DETAIL_EXTENDED_DATA_EXTENSION_U_TYPE_X2P101_PAYLOAD = 0;
+    }
+
+    enum BankingTransactionDetailExtendedDataService {
+        BANKING_TRANSACTION_DETAIL_EXTENDED_DATA_SERVICE_X2_P101 = 0;
+    }
+
+    // Optional extended data provided specific to transaction originated via NPP
+    BankingTransactionDetailExtendedDataExtensionUType extensionUType = 1;
+
+    // Label of the target PayID.  Mandatory for an outbound payment. The name assigned to the BSB/Account Number or PayID (by the owner of the PayID)
+    string payee = 2;
+
+    // Label of the originating payer. Mandatory for inbound payment
+    string payer = 3;
+
+    // Identifier of the applicable overlay service. Valid values are: X2P1.01
+    BankingTransactionDetailExtendedDataService service = 4;
+    BankingTransactionDetailExtendedDataX2p101Payload x2p101Payload = 5;
+}
+
+message BankingTransactionDetailExtendedDataX2p101Payload {
+    // An end to end ID for the payment created at initiation
+    string endToEndId = 1;
+
+    // An extended string description. Only present if specified by the extensionUType field
+    string extendedDescription = 2;
+
+    // Purpose of the payment.  Format is defined by NPP standards for the x2p1.01 overlay service
+    string purposeCode = 3;
+}
+
+message CommonEmailAddress {
+    enum CommonEmailAddressPurpose {
+        COMMON_EMAIL_ADDRESS_PURPOSE_WORK = 0;
+        COMMON_EMAIL_ADDRESS_PURPOSE_HOME = 1;
+        COMMON_EMAIL_ADDRESS_PURPOSE_OTHER = 2;
+        COMMON_EMAIL_ADDRESS_PURPOSE_UNSPECIFIED = 3;
+    }
+
+    // A correctly formatted email address, as defined by the addr_spec format in [RFC 5322](https://www.ietf.org/rfc/rfc5322.txt)
+    string address = 1;
+
+    // May be true for one and only one email record in the collection. Denotes the default email address
+    bool isPreferred = 2;
+
+    // The purpose for the email, as specified by the customer (Enumeration)
+    CommonEmailAddressPurpose purpose = 3;
+}
+
+message CommonOrganisation {
+    enum CommonOrganisationOrganisationType {
+        COMMON_ORGANISATION_ORGANISATION_TYPE_SOLE_TRADER = 0;
+        COMMON_ORGANISATION_ORGANISATION_TYPE_COMPANY = 1;
+        COMMON_ORGANISATION_ORGANISATION_TYPE_PARTNERSHIP = 2;
+        COMMON_ORGANISATION_ORGANISATION_TYPE_TRUST = 3;
+        COMMON_ORGANISATION_ORGANISATION_TYPE_GOVERNMENT_ENTITY = 4;
+        COMMON_ORGANISATION_ORGANISATION_TYPE_OTHER = 5;
+    }
+
+    // Australian Business Number for the organisation
+    string abn = 1;
+
+    // Australian Company Number for the organisation. Required only if an ACN is applicable for the organisation type
+    string acn = 2;
+
+    // The first name of the individual providing access on behalf of the organisation. For people with single names this field need not be present.  The single name should be in the lastName field
+    string agentFirstName = 3;
+
+    // The last name of the individual providing access on behalf of the organisation. For people with single names the single name should be in this field
+    string agentLastName = 4;
+
+    // The role of the individual identified as the agent who is providing authorisation.  Expected to be used for display. Default to Unspecified if the role is not known
+    string agentRole = 5;
+
+    // Name of the organisation
+    string businessName = 6;
+
+    // The date the organisation described was established
+    string establishmentDate = 7;
+
+    // [ANZSIC (2006)](http://www.abs.gov.au/anzsic) code for the organisation.
+    string industryCode = 8;
+
+    // True if registered with the ACNC.  False if not. Absent or null if not confirmed.
+    bool isACNCRegistered = 9;
+
+    // The date and time that this record was last updated by the customer. If no update has occurred then this date should reflect the initial creation date for the data
+    string lastUpdateTime = 10;
+
+    // Legal name, if different to the business name
+    string legalName = 11;
+
+    // Legal organisation type
+    CommonOrganisationOrganisationType organisationType = 12;
+
+    // Enumeration with values from [ISO 3166 Alpha-3](https://www.iso.org/iso-3166-country-codes.html) country codes.  Assumed to be AUS if absent
+    string registeredCountry = 13;
+
+    // Short name used for communication, if different to the business name
+    string shortName = 14;
+}
+
+message CommonOrganisationDetail {}
+
+// Australian address formatted according to the file format defined by the [PAF file format](https://auspost.com.au/content/dam/auspost_corp/media/documents/australia-post-data-guide.pdf)
+message CommonPAFAddress {
+    // Building/Property name 1
+    string buildingName1 = 1;
+
+    // Building/Property name 2
+    string buildingName2 = 2;
+
+    // Unique identifier for an address as defined by Australia Post.  Also known as Delivery Point Identifier
+    string dpid = 3;
+
+    // Unit number (including suffix, if applicable)
+    string flatUnitNumber = 4;
+
+    // Type of flat or unit for the address
+    string flatUnitType = 5;
+
+    // Floor or level number (including alpha characters)
+    string floorLevelNumber = 6;
+
+    // Type of floor or level for the address
+    string floorLevelType = 7;
+
+    // Full name of locality
+    string localityName = 8;
+
+    // Allotment number for the address
+    string lotNumber = 9;
+
+    // Postal delivery number if the address is a postal delivery type
+    int32 postalDeliveryNumber = 10;
+
+    // Postal delivery number prefix related to the postal delivery number
+    string postalDeliveryNumberPrefix = 11;
+
+    // Postal delivery number suffix related to the postal delivery number
+    string postalDeliveryNumberSuffix = 12;
+
+    // Postal delivery type. (eg. PO BOX). Valid enumeration defined by Australia Post PAF code file
+    string postalDeliveryType = 13;
+
+    // Postcode for the locality
+    string postcode = 14;
+
+    // State in which the address belongs. Valid enumeration defined by Australia Post PAF code file [State Type Abbreviation](https://auspost.com.au/content/dam/auspost_corp/media/documents/australia-post-data-guide.pdf). NSW, QLD, VIC, NT, WA, SA, TAS, ACT, AAT
+    string state = 15;
+
+    // The name of the street
+    string streetName = 16;
+
+    // The street type suffix. Valid enumeration defined by Australia Post PAF code file
+    string streetSuffix = 17;
+
+    // The street type. Valid enumeration defined by Australia Post PAF code file
+    string streetType = 18;
+
+    // Thoroughfare number for a property (first number in a property ranged address)
+    int32 thoroughfareNumber1 = 19;
+
+    // Suffix for the thoroughfare number. Only relevant is thoroughfareNumber1 is populated
+    string thoroughfareNumber1Suffix = 20;
+
+    // Second thoroughfare number (only used if the property has a ranged address eg 23-25)
+    int32 thoroughfareNumber2 = 21;
+
+    // Suffix for the second thoroughfare number. Only relevant is thoroughfareNumber2 is populated
+    string thoroughfareNumber2Suffix = 22;
+}
+
+message CommonPerson {
+    // For people with single names this field need not be present.  The single name should be in the lastName field
+    string firstName = 1;
+
+    // For people with single names the single name should be in this field
+    string lastName = 2;
+
+    // The date and time that this record was last updated by the customer.  If no update has occurred then this date should reflect the initial creation date for the data
+    string lastUpdateTime = 3;
+
+    // Field is mandatory but array may be empty
+    repeated string middleNames = 4;
+
+    // Value is a valid [ANZSCO v1.2](http://www.abs.gov.au/ANZSCO) Standard Occupation classification.
+    string occupationCode = 5;
+
+    // Also known as title or salutation.  The prefix to the name (e.g. Mr, Mrs, Ms, Miss, Sir, etc)
+    string prefix = 6;
+
+    // Used for a trailing suffix to the name (e.g. Jr)
+    string suffix = 7;
+}
+
+message CommonPersonDetail {}
+
+message CommonPhoneNumber {
+    enum CommonPhoneNumberPurpose {
+        COMMON_PHONE_NUMBER_PURPOSE_MOBILE = 0;
+        COMMON_PHONE_NUMBER_PURPOSE_HOME = 1;
+        COMMON_PHONE_NUMBER_PURPOSE_WORK = 2;
+        COMMON_PHONE_NUMBER_PURPOSE_OTHER = 3;
+        COMMON_PHONE_NUMBER_PURPOSE_INTERNATIONAL = 4;
+        COMMON_PHONE_NUMBER_PURPOSE_UNSPECIFIED = 5;
+    }
+
+    // Required for non Mobile Phones, if field is present and refers to Australian code - the leading 0 should be omitted.
+    string areaCode = 1;
+
+    // If absent, assumed to be Australia (+61). The + should be included
+    string countryCode = 2;
+
+    // An extension number (if applicable)
+    string extension = 3;
+
+    // Fully formatted phone number with country code, area code, number and extension incorporated. Formatted according to section 5.1.4. of [RFC 3966](https://www.ietf.org/rfc/rfc3966.txt)
+    string fullNumber = 4;
+
+    // May be true for one and only one entry to indicate the preferred phone number. Assumed to be 'false' if not present
+    bool isPreferred = 5;
+
+    // The actual phone number, with leading zeros as appropriate
+    string number = 6;
+
+    // The purpose of the number as specified by the customer
+    CommonPhoneNumberPurpose purpose = 7;
+}
+
+message CommonPhysicalAddress {
+    enum CommonPhysicalAddressAddressUType {
+        COMMON_PHYSICAL_ADDRESS_ADDRESS_U_TYPE_SIMPLE = 0;
+        COMMON_PHYSICAL_ADDRESS_ADDRESS_U_TYPE_PAF = 1;
+    }
+
+    // The type of address object present
+    CommonPhysicalAddressAddressUType addressUType = 1;
+    CommonPAFAddress paf = 2;
+    CommonSimpleAddress simple = 3;
+}
+
+message CommonPhysicalAddressWithPurpose {}
+
+message CommonSimpleAddress {
+    // First line of the standard address object
+    string addressLine1 = 1;
+
+    // Second line of the standard address object
+    string addressLine2 = 2;
+
+    // Third line of the standard address object
+    string addressLine3 = 3;
+
+    // Name of the city or locality
+    string city = 4;
+
+    // A valid [ISO 3166 Alpha-3](https://www.iso.org/iso-3166-country-codes.html) country code. Australia (AUS) is assumed if country is not present.
+    string country = 5;
+
+    // Name of the individual or business formatted for inclusion in an address used for physical mail
+    string mailingName = 6;
+
+    // Mandatory for Australian addresses
+    string postcode = 7;
+
+    // Free text if the country is not Australia. If country is Australia then must be one of the values defined by the [State Type Abbreviation](https://auspost.com.au/content/dam/auspost_corp/media/documents/australia-post-data-guide.pdf) in the PAF file format. NSW, QLD, VIC, NT, WA, SA, TAS, ACT, AAT
+    string state = 8;
+}
+
+message DiscoveryOutage {
+    // Planned duration of the outage. Formatted according to [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) (excludes recurrence syntax)
+    string duration = 1;
+
+    // Provides an explanation of the current outage that can be displayed to an end customer
+    string explanation = 2;
+
+    // Flag that indicates, if present and set to true, that the outage is only partial meaning that only a subset of normally available end points will be affected by the outage
+    bool isPartial = 3;
+
+    // Date and time that the outage is scheduled to begin
+    string outageTime = 4;
+}
+
+message GetAccountDetailRequest {
+    // A tokenised identifier for the account which is unique but not shareable
+    string accountId = 1;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 2;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 3;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 4;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 5;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 6;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 7;
+}
+
+message GetBalanceRequest {
+    // ID of the specific account requested
+    string accountId = 1;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 2;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 3;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 4;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 5;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 6;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 7;
+}
+
+message GetCustomerDetailRequest {
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 1;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 2;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 3;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 4;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 5;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 6;
+}
+
+message GetCustomerRequest {
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 1;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 2;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 3;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 4;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 5;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 6;
+}
+
+message GetOutagesRequest {
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 1;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 2;
+}
+
+message GetPayeeDetailRequest {
+    // The ID used to locate the details of a particular payee
+    string payeeId = 1;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 2;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 3;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 4;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 5;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 6;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 7;
+}
+
+message GetProductDetailRequest {
+    // ID of the specific product requested
+    string productId = 1;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 2;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 3;
+}
+
+message GetStatusRequest {
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 1;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 2;
+}
+
+message GetTransactionDetailRequest {
+    // ID of the account to get transactions for.  Must have previously been returned by one of the account list end points
+    string accountId = 1;
+
+    // ID of the transaction obtained from a previous call to one of the other transaction end points
+    string transactionId = 2;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 3;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 4;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 5;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 6;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 7;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 8;
+}
+
+message GetTransactionsRequest {
+    // ID of the account to get transactions for.  Must have previously been returned by one of the account list end points.
+    string accountId = 1;
+
+    // Filter transactions to only transactions with amounts less than or equal to than this amount
+    string max_amount = 2;
+
+    // Filter transactions to only transactions with amounts higher or equal to than this amount
+    string min_amount = 3;
+
+    // Constrain the transaction history request to transactions with effective time at or before this date/time.  If absent defaults to today.  Format is aligned to DateTimeString common type
+    string newest_time = 4;
+
+    // Constrain the transaction history request to transactions with effective time at or after this date/time. If absent defaults to newest-time minus 90 days.  Format is aligned to DateTimeString common type
+    string oldest_time = 5;
+
+    // Page of results to request (standard pagination)
+    int32 page = 6;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 7;
+
+    // Filter transactions to only transactions where this string value is found as a substring of either the reference or description fields. Format is arbitrary ASCII string. This parameter is optionally implemented by data holders. If it is not implemented then a response should be provided as normal without text filtering applied and an additional boolean field named isQueryParamUnsupported should be included in the meta object and set to true (whether the text parameter is supplied or not)
+    string text = 8;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 9;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 10;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 11;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 12;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 13;
+}
+
+message Links {
+    // Fully qualified link that generated the current response document
+    string self = 1;
+}
+
+message LinksPaginated {
+    // URI to the first page of this set. Mandatory if this response is not the first page
+    string first = 1;
+
+    // URI to the last page of this set. Mandatory if this response is not the last page
+    string last = 2;
+
+    // URI to the next page of this set. Mandatory if this response is not the last page
+    string next = 3;
+
+    // URI to the previous page of this set. Mandatory if this response is not the first page
+    string prev = 4;
+
+    // Fully qualified link that generated the current response document
+    string self = 5;
+}
+
+message ListAccountsRequest {
+    enum ListAccountsRequestOpenStatus {
+        LIST_ACCOUNTS_REQUEST_OPEN_STATUS_OPEN = 0;
+        LIST_ACCOUNTS_REQUEST_OPEN_STATUS_CLOSED = 1;
+        LIST_ACCOUNTS_REQUEST_OPEN_STATUS_ALL = 2;
+    }
+
+    enum ListAccountsRequestProductCategory {
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TRANS_AND_SAVINGS_ACCOUNTS = 0;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TERM_DEPOSITS = 1;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TRAVEL_CARDS = 2;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_REGULATED_TRUST_ACCOUNTS = 3;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_RESIDENTIAL_MORTGAGES = 4;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_CRED_AND_CHRG_CARDS = 5;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_PERS_LOANS = 6;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_MARGIN_LOANS = 7;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_LEASES = 8;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TRADE_FINANCE = 9;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_OVERDRAFTS = 10;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_BUSINESS_LOANS = 11;
+    }
+
+    // Filters accounts based on whether they are owned by the authorised customer.  True for owned accounts, false for unowned accounts and absent for all accounts
+    bool is_owned = 1;
+
+    // Used to filter results according to open/closed status. Values can be OPEN, CLOSED or ALL. If absent then ALL is assumed
+    ListAccountsRequestOpenStatus open_status = 2;
+
+    // Page of results to request (standard pagination)
+    int32 page = 3;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 4;
+
+    // Used to filter results on the productCategory field applicable to accounts. Any one of the valid values for this field can be supplied. If absent then all accounts returned.
+    ListAccountsRequestProductCategory product_category = 5;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 6;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 7;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 8;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 9;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 10;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 11;
+}
+
+message ListBalancesBulkRequest {
+    enum ListBalancesBulkRequestOpenStatus {
+        LIST_BALANCES_BULK_REQUEST_OPEN_STATUS_OPEN = 0;
+        LIST_BALANCES_BULK_REQUEST_OPEN_STATUS_CLOSED = 1;
+        LIST_BALANCES_BULK_REQUEST_OPEN_STATUS_ALL = 2;
+    }
+
+    enum ListBalancesBulkRequestProductCategory {
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_TRANS_AND_SAVINGS_ACCOUNTS = 0;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_TERM_DEPOSITS = 1;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_TRAVEL_CARDS = 2;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_REGULATED_TRUST_ACCOUNTS = 3;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_RESIDENTIAL_MORTGAGES = 4;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_CRED_AND_CHRG_CARDS = 5;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_PERS_LOANS = 6;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_MARGIN_LOANS = 7;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_LEASES = 8;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_TRADE_FINANCE = 9;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_OVERDRAFTS = 10;
+        LIST_BALANCES_BULK_REQUEST_PRODUCT_CATEGORY_BUSINESS_LOANS = 11;
+    }
+
+    // Filters accounts based on whether they are owned by the authorised customer.  True for owned accounts, false for unowned accounts and absent for all accounts
+    bool is_owned = 1;
+
+    // Used to filter results according to open/closed status. Values can be OPEN, CLOSED or ALL. If absent then ALL is assumed
+    ListBalancesBulkRequestOpenStatus open_status = 2;
+
+    // Page of results to request (standard pagination)
+    int32 page = 3;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 4;
+
+    // Used to filter results on the productCategory field applicable to accounts. Any one of the valid values for this field can be supplied. If absent then all accounts returned.
+    ListBalancesBulkRequestProductCategory product_category = 5;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 6;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 7;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 8;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 9;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 10;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 11;
+}
+
+message ListBalancesSpecificAccountsRequest {
+    // The list of account IDs to obtain balances for
+    RequestAccountIds accountIds = 1;
+
+    // Page of results to request (standard pagination)
+    int32 page = 2;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 3;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 4;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 5;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 6;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 7;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 8;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 9;
+}
+
+message ListDirectDebitsBulkRequest {
+    enum ListDirectDebitsBulkRequestOpenStatus {
+        LIST_DIRECT_DEBITS_BULK_REQUEST_OPEN_STATUS_OPEN = 0;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_OPEN_STATUS_CLOSED = 1;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_OPEN_STATUS_ALL = 2;
+    }
+
+    enum ListDirectDebitsBulkRequestProductCategory {
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_TRANS_AND_SAVINGS_ACCOUNTS = 0;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_TERM_DEPOSITS = 1;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_TRAVEL_CARDS = 2;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_REGULATED_TRUST_ACCOUNTS = 3;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_RESIDENTIAL_MORTGAGES = 4;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_CRED_AND_CHRG_CARDS = 5;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_PERS_LOANS = 6;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_MARGIN_LOANS = 7;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_LEASES = 8;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_TRADE_FINANCE = 9;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_OVERDRAFTS = 10;
+        LIST_DIRECT_DEBITS_BULK_REQUEST_PRODUCT_CATEGORY_BUSINESS_LOANS = 11;
+    }
+
+    // Filters accounts based on whether they are owned by the authorised customer.  True for owned accounts, false for unowned accounts and absent for all accounts
+    bool is_owned = 1;
+
+    // Used to filter results according to open/closed status. Values can be OPEN, CLOSED or ALL. If absent then ALL is assumed
+    ListDirectDebitsBulkRequestOpenStatus open_status = 2;
+
+    // Page of results to request (standard pagination)
+    int32 page = 3;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 4;
+
+    // Used to filter results on the productCategory field applicable to accounts. Any one of the valid values for this field can be supplied. If absent then all accounts returned.
+    ListDirectDebitsBulkRequestProductCategory product_category = 5;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 6;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 7;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 8;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 9;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 10;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 11;
+}
+
+message ListDirectDebitsRequest {
+    // ID of the account to get direct debit authorisations for.  Must have previously been returned by one of the account list end points.
+    string accountId = 1;
+
+    // Page of results to request (standard pagination)
+    int32 page = 2;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 3;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 4;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 5;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 6;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 7;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 8;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 9;
+}
+
+message ListDirectDebitsSpecificAccountsRequest {
+    // Array of specific accountIds to obtain authorisations for
+    RequestAccountIds accountIds = 1;
+
+    // Page of results to request (standard pagination)
+    int32 page = 2;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 3;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 4;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 5;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 6;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 7;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 8;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 9;
+}
+
+message ListPayeesRequest {
+    enum ListPayeesRequestType {
+        LIST_PAYEES_REQUEST_TYPE_DOMESTIC = 0;
+        LIST_PAYEES_REQUEST_TYPE_INTERNATIONAL = 1;
+        LIST_PAYEES_REQUEST_TYPE_BILLER = 2;
+        LIST_PAYEES_REQUEST_TYPE_ALL = 3;
+    }
+
+    // Page of results to request (standard pagination)
+    int32 page = 1;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 2;
+
+    // Filter on the payee type field.  In addition to normal type field values, ALL can be specified to retrieve all payees.  If absent the assumed value is ALL
+    ListPayeesRequestType type = 3;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 4;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 5;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 6;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 7;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 8;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 9;
+}
+
+message ListProductsRequest {
+    enum ListProductsRequestEffective {
+        LIST_PRODUCTS_REQUEST_EFFECTIVE_CURRENT = 0;
+        LIST_PRODUCTS_REQUEST_EFFECTIVE_FUTURE = 1;
+        LIST_PRODUCTS_REQUEST_EFFECTIVE_ALL = 2;
+    }
+
+    enum ListProductsRequestProductCategory {
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_TRANS_AND_SAVINGS_ACCOUNTS = 0;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_TERM_DEPOSITS = 1;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_TRAVEL_CARDS = 2;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_REGULATED_TRUST_ACCOUNTS = 3;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_RESIDENTIAL_MORTGAGES = 4;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_CRED_AND_CHRG_CARDS = 5;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_PERS_LOANS = 6;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_MARGIN_LOANS = 7;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_LEASES = 8;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_TRADE_FINANCE = 9;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_OVERDRAFTS = 10;
+        LIST_PRODUCTS_REQUEST_PRODUCT_CATEGORY_BUSINESS_LOANS = 11;
+    }
+
+    // Filter results based on a specific brand
+    string brand = 1;
+
+    // Allows for the filtering of products based on whether the current time is within the period of time defined as effective by the effectiveFrom and effectiveTo fields. Valid values are ‘CURRENT’, ‘FUTURE’ and ‘ALL’. If absent defaults to 'CURRENT'
+    ListProductsRequestEffective effective = 2;
+
+    // Page of results to request (standard pagination)
+    int32 page = 3;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 4;
+
+    // Used to filter results on the productCategory field applicable to accounts. Any one of the valid values for this field can be supplied. If absent then all accounts returned.
+    ListProductsRequestProductCategory product_category = 5;
+
+    // Only include products that have been updated after the specified date and time. If absent defaults to include all products
+    string updated_since = 6;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 7;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 8;
+}
+
+message ListScheduledPaymentsBulkRequest {
+    enum ListScheduledPaymentsBulkRequestOpenStatus {
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_OPEN_STATUS_OPEN = 0;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_OPEN_STATUS_CLOSED = 1;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_OPEN_STATUS_ALL = 2;
+    }
+
+    enum ListScheduledPaymentsBulkRequestProductCategory {
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_TRANS_AND_SAVINGS_ACCOUNTS = 0;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_TERM_DEPOSITS = 1;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_TRAVEL_CARDS = 2;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_REGULATED_TRUST_ACCOUNTS = 3;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_RESIDENTIAL_MORTGAGES = 4;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_CRED_AND_CHRG_CARDS = 5;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_PERS_LOANS = 6;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_MARGIN_LOANS = 7;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_LEASES = 8;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_TRADE_FINANCE = 9;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_OVERDRAFTS = 10;
+        LIST_SCHEDULED_PAYMENTS_BULK_REQUEST_PRODUCT_CATEGORY_BUSINESS_LOANS = 11;
+    }
+
+    // Filters accounts based on whether they are owned by the authorised customer.  True for owned accounts, false for unowned accounts and absent for all accounts
+    bool is_owned = 1;
+
+    // Used to filter results according to open/closed status. Values can be OPEN, CLOSED or ALL. If absent then ALL is assumed
+    ListScheduledPaymentsBulkRequestOpenStatus open_status = 2;
+
+    // Page of results to request (standard pagination)
+    int32 page = 3;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 4;
+
+    // Used to filter results on the productCategory field applicable to accounts. Any one of the valid values for this field can be supplied. If absent then all accounts returned.
+    ListScheduledPaymentsBulkRequestProductCategory product_category = 5;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 6;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 7;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 8;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 9;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 10;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 11;
+}
+
+message ListScheduledPaymentsRequest {
+    // ID of the account to get scheduled payments for. Must have previously been returned by one of the account list end points. The account specified is the source account for the payment
+    string accountId = 1;
+
+    // Page of results to request (standard pagination)
+    int32 page = 2;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 3;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 4;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 5;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 6;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 7;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 8;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 9;
+}
+
+message ListScheduledPaymentsSpecificAccountsRequest {
+    // Array of specific accountIds to obtain scheduled payments for.  The accounts specified are the source of funds for the payments returned
+    RequestAccountIds accountIds = 1;
+
+    // Page of results to request (standard pagination)
+    int32 page = 2;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 3;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 4;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 5;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 6;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 7;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 8;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 9;
+}
+
+message Meta {}
+
+message MetaPaginated {
+    // The total number of pages in the full set. See [pagination](#pagination).
+    int32 totalPages = 1;
+
+    // The total number of records in the full set. See [pagination](#pagination).
+    int32 totalRecords = 2;
+}
+
+message RequestAccountIds {
+    RequestAccountIdsData data = 1;
+    Meta meta = 2;
+}
+
+message RequestAccountIdsData {
+    repeated string accountIds = 1;
+}
+
+message ResponseBankingAccountById {
+    BankingAccountDetail data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseBankingAccountList {
+    ResponseBankingAccountListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingAccountListData {
+    // The list of accounts returned. If the filter results in an empty set then this array may have no records
+    repeated BankingAccount accounts = 1;
+}
+
+message ResponseBankingAccountsBalanceById {
+    BankingBalance data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseBankingAccountsBalanceList {
+    ResponseBankingAccountsBalanceListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingAccountsBalanceListData {
+    // The list of balances returned
+    repeated BankingBalance balances = 1;
+}
+
+message ResponseBankingDirectDebitAuthorisationList {
+    ResponseBankingDirectDebitAuthorisationListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingDirectDebitAuthorisationListData {
+    // The list of authorisations returned
+    repeated BankingDirectDebit directDebitAuthorisations = 1;
+}
+
+message ResponseBankingPayeeById {
+    BankingPayeeDetail data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseBankingPayeeList {
+    ResponseBankingPayeeListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingPayeeListData {
+    // The list of payees returned
+    repeated BankingPayee payees = 1;
+}
+
+message ResponseBankingProductById {
+    BankingProductDetail data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseBankingProductList {
+    ResponseBankingProductListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingProductListData {
+    // The list of products returned.  If the filter results in an empty set then this array may have no records
+    repeated BankingProductV2 products = 1;
+}
+
+message ResponseBankingScheduledPaymentsList {
+    ResponseBankingScheduledPaymentsListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingScheduledPaymentsListData {
+    // The list of scheduled payments to return
+    repeated BankingScheduledPayment scheduledPayments = 1;
+}
+
+message ResponseBankingTransactionById {
+    BankingTransactionDetail data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseBankingTransactionList {
+    ResponseBankingTransactionListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingTransactionListData {
+    repeated BankingTransaction transactions = 1;
+}
+
+message ResponseCommonCustomer {
+    ResponseCommonCustomerData data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseCommonCustomerData {
+    enum ResponseCommonCustomerDataCustomerUType {
+        RESPONSE_COMMON_CUSTOMER_DATA_CUSTOMER_U_TYPE_PERSON = 0;
+        RESPONSE_COMMON_CUSTOMER_DATA_CUSTOMER_U_TYPE_ORGANISATION = 1;
+    }
+
+    // The type of customer object that is present
+    ResponseCommonCustomerDataCustomerUType customerUType = 1;
+    CommonOrganisation organisation = 2;
+    CommonPerson person = 3;
+}
+
+message ResponseCommonCustomerDetail {
+    ResponseCommonCustomerDetailData data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseCommonCustomerDetailData {
+    enum ResponseCommonCustomerDetailDataCustomerUType {
+        RESPONSE_COMMON_CUSTOMER_DETAIL_DATA_CUSTOMER_U_TYPE_PERSON = 0;
+        RESPONSE_COMMON_CUSTOMER_DETAIL_DATA_CUSTOMER_U_TYPE_ORGANISATION = 1;
+    }
+
+    // The type of customer object that is present
+    ResponseCommonCustomerDetailDataCustomerUType customerUType = 1;
+    CommonOrganisationDetail organisation = 2;
+    CommonPersonDetail person = 3;
+}
+
+message ResponseCommonDiscoveryStatus {
+    ResponseCommonDiscoveryStatusData data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseCommonDiscoveryStatusData {
+    enum ResponseCommonDiscoveryStatusDataStatus {
+        RESPONSE_COMMON_DISCOVERY_STATUS_DATA_STATUS_OK = 0;
+        RESPONSE_COMMON_DISCOVERY_STATUS_DATA_STATUS_PARTIAL_FAILURE = 1;
+        RESPONSE_COMMON_DISCOVERY_STATUS_DATA_STATUS_UNAVAILABLE = 2;
+        RESPONSE_COMMON_DISCOVERY_STATUS_DATA_STATUS_SCHEDULED_OUTAGE = 3;
+    }
+
+    // The date and time that the current outage was detected. Should only be present if the status property is PARTIAL_FAILURE or UNAVAILABLE
+    string detectionTime = 1;
+
+    // The date and time that full service is expected to resume (if known). Should not be present if the status property has a value of OK.
+    string expectedResolutionTime = 2;
+
+    // Provides an explanation of the current outage that can be displayed to an end customer. Mandatory if the status property is any value other than OK
+    string explanation = 3;
+
+    // Enumeration with values. OK (implementation is fully functional). PARTIAL_FAILURE (one or more end points are unexpectedly unavailable). UNAVAILABLE (the full implementation is unexpectedly unavailable). SCHEDULED_OUTAGE (an advertised outage is in effect)
+    ResponseCommonDiscoveryStatusDataStatus status = 4;
+
+    // The date and time that this status was last updated by the Data Holder.
+    string updateTime = 5;
+}
+
+message ResponseDiscoveryOutagesList {
+    ResponseDiscoveryOutagesListData data = 1;
+    Links links = 2;
+    Meta meta = 3;
+}
+
+message ResponseDiscoveryOutagesListData {
+    // List of scheduled outages. Property is mandatory but may contain and empty list if no outages are scheduled
+    repeated DiscoveryOutage outages = 1;
+}
+
+message ResponseErrorList {
+    repeated ResponseErrorListErrors errors = 1;
+}
+
+message ResponseErrorListErrors {
+    message MetaMessage {}
+
+    // Must be one of the following: 0001 – Account not able to be found
+    string code = 1;
+
+    // ID of the account not found
+    string detail = 2;
+
+    // Optional additional data for specific error types
+    MetaMessage meta = 3;
+
+    // Must be one of the following: Invalid account
+    string title = 4;
+}
+
+service ConsumerDataStandardsService {
+    // Get Account Detail
+    // 
+    // Obtain detailed information on a single account
+    rpc GetAccountDetail(GetAccountDetailRequest) returns (ResponseBankingAccountById) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/{accountId}"
+        };
+    }
+
+    // Get Account Balance
+    // 
+    // Obtain the balance for a single specified account
+    rpc GetBalance(GetBalanceRequest) returns (ResponseBankingAccountsBalanceById) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/{accountId}/balance"
+        };
+    }
+
+    // Get Customer
+    // 
+    // Obtain basic information on the customer that has authorised the current session
+    rpc GetCustomer(GetCustomerRequest) returns (ResponseCommonCustomer) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/common/customer"
+        };
+    }
+
+    // Get Customer Detail
+    // 
+    // Obtain detailed information on the authorised customer within the current session.
+    rpc GetCustomerDetail(GetCustomerDetailRequest) returns (ResponseCommonCustomerDetail) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/common/customer/detail"
+        };
+    }
+
+    // Get Outages
+    // 
+    // Obtain a list of scheduled outages for the implementation
+    rpc GetOutages(GetOutagesRequest) returns (ResponseDiscoveryOutagesList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/discovery/outages"
+        };
+    }
+
+    // Get Payee Detail
+    // 
+    // Obtain detailed information on a single payee.
+    // 
+    // Note that the payee sub-structure should be selected to represent the payment destination only rather than any known characteristics of the payment recipient
+    rpc GetPayeeDetail(GetPayeeDetailRequest) returns (ResponseBankingPayeeById) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/payees/{payeeId}"
+        };
+    }
+
+    // Get Product Detail
+    // 
+    // Obtain detailed information on a single product offered openly to the market.
+    // 
+    // NOTE: This version must be implemented by **July 2020**
+    // 
+    // Obsolete versions: [v1](includes/obsolete/get-product-detail-v1.html)
+    rpc GetProductDetail(GetProductDetailRequest) returns (ResponseBankingProductById) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/products/{productId}"
+        };
+    }
+
+    // Get Status
+    // 
+    // Obtain a health check status for the implementation
+    rpc GetStatus(GetStatusRequest) returns (ResponseCommonDiscoveryStatus) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/discovery/status"
+        };
+    }
+
+    // Get Transaction Detail
+    // 
+    // Obtain detailed information on a transaction for a specific account
+    rpc GetTransactionDetail(GetTransactionDetailRequest) returns (ResponseBankingTransactionById) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/{accountId}/transactions/{transactionId}"
+        };
+    }
+
+    // Get Transactions For Account
+    // 
+    // Obtain transactions for a specific account.
+    // 
+    // Some general notes that apply to all end points that retrieve transactions:
+    // 
+    // - Where multiple transactions are returned, transactions should be ordered according to effective date in descending order
+    // - As the date and time for a transaction can alter depending on status and transaction type two separate date/times are included in the payload. There are still some scenarios where neither of these time stamps is available. For the purpose of filtering and ordering it is expected that the data holder will use the “effective” date/time which will be defined as:
+    // 		- Posted date/time if available, then
+    // 		- Execution date/time if available, then
+    // 		- A reasonable date/time nominated by the data holder using internal data structures
+    // - For transaction amounts it should be assumed that a negative value indicates a reduction of the available balance on the account while a positive value indicates an increase in the available balance on the account
+    // - For aggregated transactions (ie. groups of sub transactions reported as a single entry for the account) only the aggregated information, with as much consistent information accross the subsidiary transactions as possible, is required to be shared
+    rpc GetTransactions(GetTransactionsRequest) returns (ResponseBankingTransactionList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/{accountId}/transactions"
+        };
+    }
+
+    // Get Accounts
+    // 
+    // Obtain a list of accounts
+    rpc ListAccounts(ListAccountsRequest) returns (ResponseBankingAccountList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts"
+        };
+    }
+
+    // Get Bulk Balances
+    // 
+    // Obtain balances for multiple, filtered accounts
+    rpc ListBalancesBulk(ListBalancesBulkRequest) returns (ResponseBankingAccountsBalanceList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/balances"
+        };
+    }
+
+    // Get Balances For Specific Accounts
+    // 
+    // Obtain balances for a specified list of accounts
+    rpc ListBalancesSpecificAccounts(ListBalancesSpecificAccountsRequest) returns (ResponseBankingAccountsBalanceList) {
+        option (google.api.http) = {
+            post: "/cds-au/v1/banking/accounts/balances"
+            body: "accountIds"
+        };
+    }
+
+    // Get Direct Debits For Account
+    // 
+    // Obtain direct debit authorisations for a specific account
+    rpc ListDirectDebits(ListDirectDebitsRequest) returns (ResponseBankingDirectDebitAuthorisationList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/{accountId}/direct-debits"
+        };
+    }
+
+    // Get Bulk Direct Debits
+    // 
+    // Obtain direct debit authorisations for multiple, filtered accounts
+    rpc ListDirectDebitsBulk(ListDirectDebitsBulkRequest) returns (ResponseBankingDirectDebitAuthorisationList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/direct-debits"
+        };
+    }
+
+    // Get Direct Debits For Specific Accounts
+    // 
+    // Obtain direct debit authorisations for a specified list of accounts
+    rpc ListDirectDebitsSpecificAccounts(ListDirectDebitsSpecificAccountsRequest) returns (ResponseBankingDirectDebitAuthorisationList) {
+        option (google.api.http) = {
+            post: "/cds-au/v1/banking/accounts/direct-debits"
+            body: "accountIds"
+        };
+    }
+
+    // Get Payees
+    // 
+    // Obtain a list of pre-registered payees
+    rpc ListPayees(ListPayeesRequest) returns (ResponseBankingPayeeList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/payees"
+        };
+    }
+
+    // Get Products
+    // 
+    // Obtain a list of products that are currently openly offered to the market
+    // 
+    // Note that the results returned by this end point are expected to be ordered according to updated-since
+    // 
+    // ### Conventions
+    // In the product reference payloads there are a number of recurring conventions that are explained here, in one place.
+    // 
+    // #### Arrays Of Features
+    // 
+    // In the product detail payload there are a number of arrays articulating generic features, constraints, prices, etc. The intent of these arrays is as follows:
+    // 
+    // - Each element in an array has the same structure so that clients can reliably interpret the payloads
+    // - Each element as a type element that is an enumeration of the specific aspect of a product being described, such as types of fees.
+    // - Each element has a field name [additionalValue](#productfeaturetypedoc).  This is a generic field with contents that will vary based on the type of object being described. The contents of this field for the ADDITIONAL_CARDS feature is the number of cards allowed while the contents of this field for the MAX_LIMIT constraint would be the maximum credit limit allowed for the product.
+    // - An element in these arrays of the same type may appear more than once. For instance, a product may offer two separate loyalty programs that the customer can select from. A fixed term mortgage may have different rates for different term lengths.
+    // - An element in these arrays may contain an additionalInfo and additionalInfoUri field. The additionalInfo field is used to provide displayable text clarifying the purpose of the element in some way when the product is presented to a customer. The additionalInfoUri provides a link to externally hosted information specifically relevant to that feature of the product.
+    // - Depending on the type of data being represented there may be additional specific fields.
+    // 
+    // #### URIs To More Information
+    // 
+    // As the complexities and nuances of a financial product can not easily be fully expressed in a data structure without a high degree of complexity it is necessary to provide additional reference information that a potential customer can access so that they are fully informed of the features and implications of the product. The payloads for product reference therefore contain numerous fields that are provided to allow the product holder to describe the product more fully using a web page hosted on their online channels.
+    // 
+    // These URIs do not need to all link to different pages. If desired, they can all link to a single hosted page and use difference HTML anchors to focus on a specific topic such as eligibility or fees.
+    // 
+    // #### Linkage To Accounts
+    // From the moment that a customer applies for a product and an account is created the account and the product that spawned it will diverge.  Rates and features of the product may change and a discount may be negotiated for the account.
+    // 
+    // For this reason, while productCategory is a common field between accounts and products, there is no specific ID that can be used to link an account to a product within the regime.
+    // 
+    // Similarly, many of the fields and objects in the product payload will appear in the account detail payload but the structures and semantics are not identical as one refers to a product that can potentially be originated and one refers to an account that actual has been instantiated and created along with the associated decisions inherent in that process.
+    // 
+    // #### Dates
+    // It is expected that data consumers needing this data will call relatively frequently to ensure the data they have is representative of the current offering from a bank.  To minimise the volume and frequency of these calls the ability to set a lastUpdated field with the date and time of the last update to this product is included.  A call for a list of products can then be filtered to only return products that have been updated since the last time that data was obtained using the updated-since query parameter.
+    // 
+    // In addition, the concept of effective date and time has also been included.  This allows for a product to be marked for obsolescence, or introduction, from a certain time without the need for an update to show that a product has been changed.  The inclusion of these dates also removes the need to represent deleted products in the payload.  Products that are no long offered can be marked not effective for a few weeks before they are then removed from the product set as an option entirely.
+    // 
+    // NOTE: This version must be implemented by **July 2020**
+    // 
+    // Obsolete versions: [v1](includes/obsolete/get-products-v1.html)
+    rpc ListProducts(ListProductsRequest) returns (ResponseBankingProductList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/products"
+        };
+    }
+
+    // Get Scheduled Payments for Account
+    // 
+    // Obtain scheduled, outgoing payments for a specific account
+    rpc ListScheduledPayments(ListScheduledPaymentsRequest) returns (ResponseBankingScheduledPaymentsList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/accounts/{accountId}/payments/scheduled"
+        };
+    }
+
+    // Get Scheduled Payments Bulk
+    // 
+    // Obtain scheduled payments for multiple, filtered accounts that are the source of funds for the payments
+    rpc ListScheduledPaymentsBulk(ListScheduledPaymentsBulkRequest) returns (ResponseBankingScheduledPaymentsList) {
+        option (google.api.http) = {
+            get: "/cds-au/v1/banking/payments/scheduled"
+        };
+    }
+
+    // Get Scheduled Payments For Specific Accounts
+    // 
+    // Obtain scheduled payments for a specified list of accounts
+    rpc ListScheduledPaymentsSpecificAccounts(ListScheduledPaymentsSpecificAccountsRequest) returns (ResponseBankingScheduledPaymentsList) {
+        option (google.api.http) = {
+            post: "/cds-au/v1/banking/payments/scheduled"
+            body: "accountIds"
+        };
+    }
+}

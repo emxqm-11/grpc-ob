@@ -1,0 +1,164 @@
+syntax = "proto3";
+
+package consumerdatastandards;
+
+import "google/api/annotations.proto";
+
+enum BankingProductCategory {
+    TRANS_AND_SAVINGS_ACCOUNTS = 0;
+    TERM_DEPOSITS = 1;
+    TRAVEL_CARDS = 2;
+    REGULATED_TRUST_ACCOUNTS = 3;
+    RESIDENTIAL_MORTGAGES = 4;
+    CRED_AND_CHRG_CARDS = 5;
+    PERS_LOANS = 6;
+    MARGIN_LOANS = 7;
+    LEASES = 8;
+    TRADE_FINANCE = 9;
+    OVERDRAFTS = 10;
+    BUSINESS_LOANS = 11;
+}
+
+message MetaPaginated {
+    // The total number of pages in the full set. See [pagination](#pagination).
+    int32 totalPages = 1;
+
+    // The total number of records in the full set. See [pagination](#pagination).
+    int32 totalRecords = 2;
+}
+
+message ListAccountsRequest {
+    enum ListAccountsRequestOpenStatus {
+        LIST_ACCOUNTS_REQUEST_OPEN_STATUS_OPEN = 0;
+        LIST_ACCOUNTS_REQUEST_OPEN_STATUS_CLOSED = 1;
+        LIST_ACCOUNTS_REQUEST_OPEN_STATUS_ALL = 2;
+    }
+
+    enum ListAccountsRequestProductCategory {
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TRANS_AND_SAVINGS_ACCOUNTS = 0;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TERM_DEPOSITS = 1;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TRAVEL_CARDS = 2;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_REGULATED_TRUST_ACCOUNTS = 3;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_RESIDENTIAL_MORTGAGES = 4;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_CRED_AND_CHRG_CARDS = 5;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_PERS_LOANS = 6;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_MARGIN_LOANS = 7;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_LEASES = 8;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_TRADE_FINANCE = 9;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_OVERDRAFTS = 10;
+        LIST_ACCOUNTS_REQUEST_PRODUCT_CATEGORY_BUSINESS_LOANS = 11;
+    }
+
+    // Filters accounts based on whether they are owned by the authorised customer.  True for owned accounts, false for unowned accounts and absent for all accounts
+    bool is_owned = 1;
+
+    // Used to filter results according to open/closed status. Values can be OPEN, CLOSED or ALL. If absent then ALL is assumed
+    ListAccountsRequestOpenStatus open_status = 2;
+
+    // Page of results to request (standard pagination)
+    int32 page = 3;
+
+    // Page size to request. Default is 25 (standard pagination)
+    int32 page_size = 4;
+
+    // Used to filter results on the productCategory field applicable to accounts. Any one of the valid values for this field can be supplied. If absent then all accounts returned.
+    ListAccountsRequestProductCategory product_category = 5;
+
+    // The customer's original standard http headers [Base64](#common-field-types) encoded, including the original User Agent header, if the customer is currently logged in to the data recipient. Mandatory for customer present calls.  Not required for unattended or unauthenticated calls.
+    string x_cds_client_headers = 6;
+
+    // The time when the customer last logged in to the data recipient. Required for all resource calls (customer present and unattended). Not to be included for unauthenticated calls.
+    string x_fapi_auth_date = 7;
+
+    // The customer's original IP address if the customer is currently logged in to the data recipient. The presence of this header indicates that the API is being called in a customer present context. Not to be included for unauthenticated calls.
+    string x_fapi_customer_ip_address = 8;
+
+    // An [RFC4122](https://tools.ietf.org/html/rfc4122) UUID used as a correlation id. If provided, the data holder must play back this value in the x-fapi-interaction-id response header. If not provided a [RFC4122] UUID value is required to be provided in the response header to track the interaction.
+    string x_fapi_interaction_id = 9;
+
+    // Minimum version of the API end point requested by the client. Must be set to a positive integer if provided. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable.
+    string x_min_v = 10;
+
+    // Version of the API end point requested by the client. Must be set to a positive integer. The data holder should respond with the highest supported version between [x-min-v](#request-headers) and [x-v](#request-headers). If the value of [x-min-v](#request-headers) is equal to or higher than the value of [x-v](#request-headers) then the [x-min-v](#request-headers) header should be treated as absent. If all versions requested are not supported then the data holder should respond with a 406 Not Acceptable. See [HTTP Headers](#request-headers)
+    string x_v = 11;
+}
+
+message LinksPaginated {
+    // URI to the first page of this set. Mandatory if this response is not the first page
+    string first = 1;
+
+    // URI to the last page of this set. Mandatory if this response is not the last page
+    string last = 2;
+
+    // URI to the next page of this set. Mandatory if this response is not the last page
+    string next = 3;
+
+    // URI to the previous page of this set. Mandatory if this response is not the first page
+    string prev = 4;
+
+    // Fully qualified link that generated the current response document
+    string self = 5;
+}
+
+
+message ResponseBankingAccountList {
+    ResponseBankingAccountListData data = 1;
+    LinksPaginated links = 2;
+    MetaPaginated meta = 3;
+}
+
+message ResponseBankingAccountListData {
+    // The list of accounts returned. If the filter results in an empty set then this array may have no records
+    repeated BankingAccount accounts = 1;
+}
+
+message BankingAccount {
+    enum BankingAccountOpenStatus {
+        BANKING_ACCOUNT_OPEN_STATUS_OPEN = 0;
+        BANKING_ACCOUNT_OPEN_STATUS_CLOSED = 1;
+    }
+
+    // A unique ID of the account adhering to the standards for ID permanence
+    string accountId = 1;
+
+    // Date that the account was created (if known)
+    string creationDate = 2;
+
+    // The display name of the account as defined by the bank. This should not incorporate account numbers or PANs. If it does the values should be masked according to the rules of the MaskedAccountString common type.
+    string displayName = 3;
+
+    // Flag indicating that the customer associated with the authorisation is an owner of the account. Does not indicate sole ownership, however. If not present then 'true' is assumed
+    bool isOwned = 4;
+
+    // A masked version of the account. Whether BSB/Account Number, Credit Card PAN or another number
+    string maskedNumber = 5;
+
+    // A customer supplied nick name for the account
+    string nickname = 6;
+
+    // Open or closed status for the account. If not present then OPEN is assumed
+    BankingAccountOpenStatus openStatus = 7;
+    BankingProductCategory productCategory = 8;
+
+    // The unique identifier of the account as defined by the data holder (akin to model number for the account)
+    string productName = 9;
+}
+
+message ListAllAccountsRequest {
+    repeated ListAccountsRequest accountRequests = 1;
+}
+
+message ResponseBankingAllAccountList {
+    repeated ResponseBankingAccountList accountsList = 1;
+}
+
+service BankingAggregatorService {
+    // Obtain a list of accounts
+    rpc ListAllAccounts(ListAllAccountsRequest) returns (ResponseBankingAllAccountList) {
+        option (google.api.http) = {
+            get: "/aggregator/v1/banking/allaccounts"
+        };
+    }
+}
+
+
