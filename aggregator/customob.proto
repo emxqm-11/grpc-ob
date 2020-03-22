@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package consumerdatastandards;
+package aggregator;
 
 import "google/api/annotations.proto";
 
@@ -144,19 +144,19 @@ message BankingAccount {
     string productName = 9;
 }
 
-message ListAllAccountsRequest {
-    repeated ListAccountsRequest accountRequests = 1;
-}
-
 message ResponseBankingAllAccountList {
-    repeated ResponseBankingAccountList accountsList = 1;
+    map<string, int32> productCategoryMap = 1;
+    int32 totalOpenAccounts = 2;
+    int32 totalClosedAccounts = 3;
+    map<string, string> accounts = 4;
 }
 
 service BankingAggregatorService {
     // Obtain a list of accounts
-    rpc ListAllAccounts(ListAllAccountsRequest) returns (ResponseBankingAllAccountList) {
+    rpc ListAllAccounts(stream BankingAccount) returns (ResponseBankingAllAccountList) {
         option (google.api.http) = {
-            get: "/aggregator/v1/banking/allaccounts"
+            post: "/aggregator/v1/banking/allaccounts",
+            body: "*"
         };
     }
 }
